@@ -1,0 +1,4 @@
+lex name.l
+yacc -d name.y
+gcc lex.yy.c y.tab.c -o calc -lm
+./calc
