@@ -1,5 +1,6 @@
+%option noyywrap
 %{
-#include "sincos.tab.h"
+#include "y.tab.h"
 #include <stdlib.h>
 #include <string.h>
 %}
@@ -17,7 +18,3 @@
 [ \t]+         { /* Ignore whitespace */ }
 .              { /* Ignore any unexpected character */ }
 %%
-
-int yywrap(void) {
-    return 1;
-}
