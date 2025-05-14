@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+int yylex(void);
+void yyerror(const char *s);
 %}
 
 /* The union can hold a double value or a string for an identifier */
