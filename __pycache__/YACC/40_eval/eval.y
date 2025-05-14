@@ -1,28 +1,64 @@
-%option noyywrap
 %{
-#include "y.tab.h"
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <math.h>
+
+/* prototypes so implicit‐declaration warnings go away */
+int yylex(void);
+void yyerror(const char *s);
 %}
 
+/* semantic value */
+%union {
+    double dval;
+    char  *sval;
+}
+
+/* tokens */
+%token <sval> IDENTIFIER
+%token <dval> NUMBER
+%token POW LOG
+
+/* precedence */
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
+
+%type  <dval> expr
+
 %%
 
-"pow"           { return POW; }
-"log"           { return LOG; }
-[a-zA-Z_][a-zA-Z0-9_]* {
-    yylval.sval = strdup(yytext);
-    return IDENTIFIER;
-}
-[0-9]+(\.[0-9]+)? {
-    yylval.dval = atof(yytext);
-    return NUMBER;
-}
-"="             { return '='; }
-","             { return ','; }
-"("             { return '('; }
-")"             { return ')'; }
-[+\-*/]         { return yytext[0]; }
-[ \t]+          { /* skip */ }
-\n              { return '\n'; }
-.               { /* skip unexpected */ }
+input:
+    /* one statement then end‐of‐file */
+    stmt '\n'   { /* done */ }
+  ;
+
+stmt:
+    IDENTIFIER '=' expr
+  {
+    printf("%s = %g\n", $1, $3);
+    free($1);
+  }
+  ;
+
+expr:
+    expr '+' expr   { $$ = $1 + $3; }
+  | expr '-' expr   { $$ = $1 - $3; }
+  | expr '*' expr   { $$ = $1 * $3; }
+  | expr '/' expr   { $$ = $1 / $3; }
+  | '-' expr  %prec UMINUS { $$ = -$2; }
+  | '(' expr ')'    { $$ = $2; }
+  | NUMBER          { $$ = $1; }
+  | POW '(' expr ',' expr ')' { $$ = pow($3, $5); }
+  | LOG '(' expr ')'          { $$ = log($3); }
+  ;
+
 %%
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Parse error: %s\n", s);
+}
+
+int main(void) {
+    return yyparse();
+}
